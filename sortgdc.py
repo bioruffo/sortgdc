@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 import time
+from collections import defaultdict
 
 """
 This script should be ran from the same directory as the downloaded GDC files (directories).
@@ -77,7 +78,7 @@ def check_data(df):
     None
         (Prints to screen.)
     '''
-    print("Checking if data was downloaded successfully:")
+    print("Checking if filenames are present:")
     df["ok"] = False
     dirs = os.listdir()
     for line in df.index:
@@ -93,7 +94,7 @@ def check_data(df):
     assert nok == 0
 
 
-def organize(df, action):
+def organize(df, action, cut):
     """
     Sort the data in folders according to Data Category and Data Type.
     Add new path and new filename as columns to the dataframe.
@@ -105,47 +106,67 @@ def organize(df, action):
         Samplesheet DataFrame created by load_data().
     action : str
         action to be performed on the files ('none', 'copy' or 'move')
+    cut : str
+        Comma-separated strings to cut as prefixes. E.g. 'TARGET-ALL-P1,TARGET-ALL-P2'
     
     Returns
     -------
     None
         However, the dataframe will be modified in-place with the addition of the columns:
+        - "unique_id": 'Case_ID' plus a suffix to guarantee name uniqueness
         - "newname": name of the file at the new directory (prepended with the sample name).
         - "newpath": relative path of the new file, including the new file name.
-        
-
     """
-    categories = list(df["Data_Category"].unique())
-    
+
+    categories = sorted(df["Data_Category"].unique())
+    df['unique_id'] = ""
     # Create organized folders, if not present
     # one top folder per category
     for cat in categories:
         if cat not in os.listdir():
             print("Creating folder", cat)
-            os.mkdir(cat)
-            datatypes = list(df[df["Data_Category"]==cat]["Data_Type"].unique())
-            # Within the category, one subfolder per data type
-            for datatype in datatypes:
-                if datatype not in os.listdir(cat):
-                    print("Creating folder", datatype, "within", cat)
+            if action in ('move', 'copy'):
+                os.mkdir(cat)
+            else:
+                print(' (dummy run, no directory created)')
+        datatypes = sorted(df[df["Data_Category"]==cat]["Data_Type"].unique())
+        # Within the category, one subfolder per data type
+        for datatype in datatypes:
+            if (cat not in os.listdir() and action not in ('move', 'copy')) or datatype not in os.listdir(cat):
+                print("  Creating subfolder", datatype)
+                if action in ('move', 'copy'):
                     os.mkdir(os.path.join(cat, datatype))
-                # Check uniqueness of the case IDs (we don't want duplicates)
-                selection = df[(df["Data_Category"]==cat) & (df["Data_Type"]==datatype)]
-                if len(selection["Case_ID"].unique()) != selection.shape[0]:
-                    print("unique:", len(selection["Case_ID"].unique()))
-                    print("shape:", selection.shape[0])
-                    print("Not unique:", selection["Case_ID"].duplicated())
-                assert len(selection["Case_ID"].unique()) == selection.shape[0]
+                else:
+                    print('   (dummy run, no directory created)')
+            # Set unique IDs
+            selection = df[(df["Data_Category"]==cat) & (df["Data_Type"]==datatype)]
+            case_ids = defaultdict(int)
+            for index in selection.index:
+                case = list(set([x.strip() for x in selection.loc[index, "Case_ID"].split(",")]))
+                assert len(case) == 1
+                case = case[0]
+                df.at[index, 'unique_id'] = f"{case}_{case_ids[case]}"
+                case_ids[case] += 1
+            selection = df[(df["Data_Category"]==cat) & (df["Data_Type"]==datatype)]
+            assert len(selection["unique_id"].unique()) == selection.shape[0]
+
     
     # Copy or move data in folders
     df["newpath"] = ""
     df["newname"] = ""
     settings = dict()
+    cut = cut.split(",") # Prefixes to remove
+    skip = int(cut.pop(-1)) # The last item is the number of characters to remove
     for index in df.index:
         source = df.loc[index, "path"]
-        case = list(set([x.strip() for x in df.loc[index, "Case_ID"].split(",")]))
-        assert len(case) == 1
-        newname = case[0]+df.loc[index, "File_Name"][36:] # The initial code prefix has 36 digits
+        case = df.loc[index, "unique_id"]
+        keep = df.loc[index, "File_Name"]
+        if cut:
+            for prefix in cut:
+                if keep.startswith(prefix):
+                    keep=keep[len(prefix):]
+        keep = keep[skip:]
+        newname = case+keep 
         df.at[index, "newname"] = newname
         destination = os.path.join(df.loc[index, "Data_Category"], df.loc[index, "Data_Type"], newname)
         df.at[index, "newpath"] = destination
@@ -195,6 +216,7 @@ def main():
     parser.add_argument("-m", "--manifest", required=True, help="Path to the manifest file")
     parser.add_argument("-s", "--samplesheet", required=True, help="Path to the sample sheet file")
     parser.add_argument("-a", "--action", choices=['none', 'copy', 'move'], default='none', help="Action to perform with the files ('none', 'copy' or 'move')")
+    parser.add_argument("-c", "--cut", default=',36', help="Comma-separated list of strings to remove as prefix, plus a number (default: ',36' == no string, but 36 characters)")
 
     args = parser.parse_args()
 
@@ -211,7 +233,7 @@ def main():
     df.to_csv("info_initial.tsv", sep="\t", index=False)
 
     # Organize
-    organize(df, args.action)
+    organize(df, args.action, args.cut)
 
     # Save the final data
     print("Saving the dataframe to 'info_final.tsv'")
