@@ -4,7 +4,7 @@ Organize and rename GDC files.
 
 ## Basic info
 
-The script will take data from the GDC manifest and samplesheet files, traverse the download directories, and copy or move the files to new directories organized by 'Data Category' and 'Data Type'.
+The script will take data from the GDC manifest and samplesheet files, traverse the download directories, and either copy or move the files to new directories organized by 'Data Category' and 'Data Type'.
 The files will also be renamed as to have the 'Case ID' as prefix, for easier identification.
 
 The script will also create the following output files:
@@ -32,7 +32,7 @@ Clone/save the sortgdc.py file inside the directory where all the GDC file direc
 `--samplesheet` (`-s`): Samplesheet file name  
 
 `--action` (`-a`): Action to perform with the files.  
-- The default is 'none' which will perform a dummy run and create the output files.  
+- 'none' (default) will perform a dummy run and create the output files. Advised as initial test, followed by checking the expected file names in the 'info_final.tsv' table, and possibly re-verifying the files' md5sums. The dummy run should also be ran to identify possible issues.  
 - 'copy' will copy the files to the organized folders.  
 - 'move' will move the files instead (not recommended, only do this if you can't afford the copy space and are certain that all is ok).    
 
