@@ -17,10 +17,11 @@ Simple usage:
 # Dry run (no action performed)
 python3 sortgdc.py -m gdc_manifest.2024-07-03.txt -s gdc_sample_sheet.2024-07-03.tsv
 
+You can also verify the md5sum of all files:
+python3 sortgdc.py -m gdc_manifest.2024-07-03.txt --verify
 
-The dry run will create a md5 checksums file, after which you can run,
+Or, since the dry run will create a md5 checksums file, you can also check the md5sums via terminal,
 md5sum -c allfiles.md5 | grep -v "OK$"
-to verify all files.
 
 # Copy files to the organized directories
 python3 sortgdc.py -m gdc_manifest.2024-07-03.txt -s gdc_sample_sheet.2024-07-03.tsv -a 'copy'
