@@ -49,14 +49,22 @@ def load_data(manifest, samplesheet):
     '''
 
     print("Loading info...")
+
+    # Load the manifest
+    manifest_df = pd.read_csv(manifest, sep='\t')
+
     # Load the sample sheet file into a DataFrame
-    samplesheet_df = pd.read_csv(samplesheet, sep='\t')
-    samplesheet_df.columns = [x.replace(" ", "_") for x in samplesheet_df.columns]
-    for column in ["Data_Category", "Data_Type"]:
-        samplesheet_df[column] = samplesheet_df[column].apply(lambda x: x.replace(" ", "_"))
+    if samplesheet != '':
+        samplesheet_df = pd.read_csv(samplesheet, sep='\t')
+        samplesheet_df.columns = [x.replace(" ", "_") for x in samplesheet_df.columns]
+        for column in ["Data_Category", "Data_Type"]:
+            samplesheet_df[column] = samplesheet_df[column].apply(lambda x: x.replace(" ", "_"))
+    else:
+        samplesheet_df = manifest_df[['id', 'filename']]
+        samplesheet_df.columns = ['File_ID', 'File_Name']
+
 
     # Add MD5 info from the manifest file
-    manifest_df = pd.read_csv(manifest, sep='\t')
     samplesheet_df = pd.merge(samplesheet_df, manifest_df[["id", "md5"]], left_on="File_ID", right_on="id", how='right')
 
     # Add file path
@@ -233,7 +241,7 @@ def main():
     # Set up argument parsing
     parser = argparse.ArgumentParser(description="Load GDC manifest and sample sheet into pandas DataFrames.")
     parser.add_argument("-m", "--manifest", required=True, help="Path to the manifest file")
-    parser.add_argument("-s", "--samplesheet", required=True, help="Path to the sample sheet file")
+    parser.add_argument("-s", "--samplesheet", default='', help="Path to the sample sheet file")
     parser.add_argument("-a", "--action", choices=['none', 'copy', 'move'], default='none', help="Action to perform with the files ('none', 'copy' or 'move')")
     parser.add_argument("-c", "--cut", default=',36', help="Comma-separated list of strings to remove as prefix, plus a number (default: ',36' == no string, but 36 characters)")
     parser.add_argument("-v", "--verify", action='store_true', help="Verify the md5sum of all files")
@@ -254,13 +262,15 @@ def main():
     df.to_csv("info_initial.tsv", sep="\t", index=False)
 
     # Organize
-    if ok:
+    if not ok:
+        print("Execution halted, not all files are present.")
+    elif args.samplesheet == '':
+        print("Samplesheet not informed; file copying/moving is not possible without its data.")
+    else:
         organize(df, args.action, args.cut)
         # Save the final data
         print("\nSaving the dataframe to 'info_final.tsv'\n")
         df.to_csv("info_final.tsv", sep="\t", index=False)
-    else:
-        print("Execution halted, not all files are present.")
 
 
 

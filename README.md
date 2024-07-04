@@ -6,8 +6,9 @@ Organize and rename GDC files.
 
 The script will take data from the GDC manifest and samplesheet files, traverse the download directories, and either copy or move the files to new directories organized by 'Data Category' and 'Data Type'.
 The files will also be renamed as to have the 'Case ID' as prefix, for easier identification.
+The script can also just check what was already downloaded, and optionally verify the files' md5sums.
 
-The script will also create the following output files:
+The script will create the following output files:
 - `info_initial.tsv` containing all data from the samplesheet, plus the md5sum of each file, its 'downloaded' status, and the 'md5sum_ok' check if requested;  
 - `allfiles.md5` a file ready to be used as input to `md5sum -c`;  
 - `info_final.tsv` containing all data from `info_initial.tsv` plus the destination path and filename.
@@ -48,24 +49,22 @@ E.g. to remove also the "TARGET-ALL-P2." prefix from any filenames that start wi
 
 ## Usage
 
-#### Perform a dummy check and create `allfiles.md5` (and the other output files):
+#### Check what was downloaded and verify the md5sums of all files:
 ```
-python3 sortgdc.py -m gdc_manifest.2024-07-03.txt -s gdc_sample_sheet.2024-07-03.tsv
+python3 sortgdc.py -m gdc_manifest.2024-07-03.txt --verify
 ```
+(View the 'md5sum_ok' column in `info_initial.tsv`)  
 
-#### Verify the md5sums via script:
+#### Just check what was downloaded:
 ```
-python3 sortgdc.py -m gdc_manifest.2024-07-03.txt -s gdc_sample_sheet.2024-07-03.tsv --verify
+python3 sortgdc.py -m gdc_manifest.2024-07-03.txt
 ```
-(check the 'md5sum_ok' column in `info_initial.tsv`)  
-
-
-#### Verify the md5sums externally via terminal:
+You can then verify the md5sums externally via terminal:
 ```
 md5sum -c allfiles.md5 | grep -v "OK$"
 ```
 
-#### Organize the files
+#### Copy the files to directories based on data type:
 ```
 python3 sortgdc.py -m gdc_manifest.2024-07-03.txt -s gdc_sample_sheet.2024-07-03.tsv -a 'copy'
 ```
