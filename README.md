@@ -8,7 +8,7 @@ The script will take data from the GDC manifest and samplesheet files, traverse 
 The files will also be renamed as to have the 'Case ID' as prefix, for easier identification.
 
 The script will also create the following output files:
-- `info_initial.tsv` containing all data from the samplesheet, plus the md5sum of each file;  
+- `info_initial.tsv` containing all data from the samplesheet, plus the md5sum of each file, its 'downloaded' status, and the 'md5sum_ok' check if requested;  
 - `allfiles.md5` a file ready to be used as input to `md5sum -c`;  
 - `info_final.tsv` containing all data from `info_initial.tsv` plus the destination path and filename.
 
@@ -27,21 +27,23 @@ Clone/save the sortgdc.py file inside the directory where all the GDC file direc
 
 ## Options
 
-`--manifest` (`-m`): Manifest file name  
+`--manifest` (`-m`): manifest file name  
 
-`--samplesheet` (`-s`): Samplesheet file name  
+`--samplesheet` (`-s`): samplesheet file name  
 
-`--action` (`-a`): Action to perform with the files.  
+`--action` (`-a`): action to perform with the files.  
 - 'none' (default) will perform a dummy run and create the output files. Advised as initial test, followed by checking the expected file names in the 'info_final.tsv' table, and possibly re-verifying the files' md5sums. The dummy run should also be ran to identify possible issues.  
 - 'copy' will copy the files to the organized folders.  
 - 'move' will move the files instead (not recommended, only do this if you can't afford the copy space and are certain that all is ok).    
 
-`--cut` (`-c`): Comma-separated list of strings to remove as prefix, plus a number of characters to remove from the start of the filename.  
+`--cut` (`-c`): comma-separated list of strings to remove as prefix, plus a number of characters to remove from the start of the filename.  
 - The default is ',36' since the file names start with a 36-character ID.  
 - If you want to leave the name as it is, use ',0'.
 - Add any prefixes that you want removed from the file names. 
 E.g. to remove also the "TARGET-ALL-P2." prefix from any filenames that start with it (even if others don't), use:  
-`--cut 'TARGET-ALL-P2.,36'`
+`--cut 'TARGET-ALL-P2.,36'` 
+
+`--verify` (`-v`): verify md5sums of all downloaded files. The result of the md5sum check will be added to `info_initial.tsv` even for dry runs.
 
 
 ## Usage
@@ -51,7 +53,14 @@ E.g. to remove also the "TARGET-ALL-P2." prefix from any filenames that start wi
 python3 sortgdc.py -m gdc_manifest.2024-07-03.txt -s gdc_sample_sheet.2024-07-03.tsv
 ```
 
-#### Verify the md5sums (strongly suggested)
+#### Verify the md5sums via script:
+```
+python3 sortgdc.py -m gdc_manifest.2024-07-03.txt -s gdc_sample_sheet.2024-07-03.tsv --verify
+```
+(check the 'md5sum_ok' column in `info_initial.tsv`)  
+
+
+#### Verify the md5sums externally via terminal:
 ```
 md5sum -c allfiles.md5 | grep -v "OK$"
 ```
@@ -61,7 +70,7 @@ md5sum -c allfiles.md5 | grep -v "OK$"
 python3 sortgdc.py -m gdc_manifest.2024-07-03.txt -s gdc_sample_sheet.2024-07-03.tsv -a 'copy'
 ```
 
-### Example run
+### Example terminal output
 
 #### Command
 ```
@@ -72,22 +81,31 @@ python3 sortgdc.py -m gdc_manifest.2024-07-03.txt -s gdc_sample_sheet.2024-07-03
 ```
 Loading info...
 Checking if filenames are present:
-OK: 2797
-Not OK: 0
-Saving md5sums to 'allfiles.md5'
-Saving the dataframe to 'info_initial.tsv'
+Downloaded: 2797 / 2797
+
+Saving expected md5sum values and file locations to 'allfiles.md5'
+
+Saving the dataframe to 'info_initial.tsv', with download information
+
+=== Dry run, no directory will actually be created ===
+Creating folder Biospecimen
+Creating subfolder Biospecimen
+Creating folder Clinical
+Creating subfolder Clinical
 Creating folder Copy_Number_Variation
-  Creating subfolder Allele-specific_Copy_Number_Segment
-  Creating subfolder Gene_Level_Copy_Number
-Creating folder DNA_Methylation
-  Creating subfolder Masked_Intensities
-  Creating subfolder Methylation_Beta_Value
+Creating subfolder Copy_Number_Variation
+Creating subfolder Copy_Number_Variation
 Creating folder Simple_Nucleotide_Variation
-  Creating subfolder Masked_Somatic_Mutation
+Creating subfolder Simple_Nucleotide_Variation
+Creating subfolder Simple_Nucleotide_Variation
+Creating subfolder Simple_Nucleotide_Variation
+Creating folder Structural_Variation
+Creating subfolder Structural_Variation
 Creating folder Transcriptome_Profiling
-  Creating subfolder Gene_Expression_Quantification
-  Creating subfolder Isoform_Expression_Quantification
-  Creating subfolder miRNA_Expression_Quantification
+Creating subfolder Transcriptome_Profiling
+Creating subfolder Transcriptome_Profiling
+Creating subfolder Transcriptome_Profiling
+
 Copying files...
 2797 / 2797
 Copying from: ./a58bdb5b-74f7-46e1-8ac5-780901d4c16f/981e279f-a841-46ef-bf55-7b0160a0a29e_noid_Red.idat
