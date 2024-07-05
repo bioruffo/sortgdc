@@ -100,7 +100,10 @@ def check_data(df, verify):
         if dir in dirs:
             if file in os.listdir(dir):
                 df.at[line, "downloaded"] = True
+    print(f"Downloaded: {sum(df['downloaded'])} / {df.shape[0]}")
+
     if verify:
+        print("Verifying md5sum of downloaded files...")
         # Calculate md5sum
         for line in df[df["downloaded"]==True].index:
             dir = df.loc[line, "File_ID"]
@@ -115,7 +118,6 @@ def check_data(df, verify):
 
     df.to_csv('test.tsv', index=False, sep='\t')
 
-    print(f"Downloaded: {sum(df['downloaded'])} / {df.shape[0]}")
     ok = (sum(df["downloaded"]) == df.shape[0])
     if verify:
         print(f"md5sum ok: {sum(df['md5sum_ok'] == True)} / {df.shape[0]}")
