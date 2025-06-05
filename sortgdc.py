@@ -136,7 +136,7 @@ def organize(df, action, cut):
     df : pandas.DataFrame
         Samplesheet DataFrame created by load_data().
     action : str
-        action to be performed on the files ('none', 'copy' or 'move')
+        action to be performed on the files ('none', 'copy', 'move', or 'symlink')
     cut : str
         Comma-separated strings to cut as prefixes. E.g. 'TARGET-ALL-P1,TARGET-ALL-P2'
     
@@ -154,19 +154,19 @@ def organize(df, action, cut):
     # Create organized folders, if not present
     # one top folder per category
 
-    if action not in ('move', 'copy'):
+    if action not in ('move', 'copy', 'symlink'):
         print("=== Dry run, no directory will actually be created ===")
     for cat in categories:
         if cat not in os.listdir():
             print(f"Creating folder {cat}")
-            if action in ('move', 'copy'):
+            if action in ('move', 'copy', 'symlink'):
                 os.mkdir(cat)
         datatypes = sorted(df[df["Data_Category"]==cat]["Data_Type"].unique())
         # Within the category, one subfolder per data type
         for datatype in datatypes:
             if (cat not in os.listdir() and action not in ('move', 'copy')) or datatype not in os.listdir(cat):
                 print(f"Creating subfolder {cat}")
-                if action in ('move', 'copy'):
+                if action in ('move', 'copy', 'symlink'):
                     os.mkdir(os.path.join(cat, datatype))
             # Set unique IDs
             selection = df[(df["Data_Category"]==cat) & (df["Data_Type"]==datatype)]
@@ -209,6 +209,9 @@ def organize(df, action, cut):
     elif action == 'copy':
         execute = shutil.copy
         verb = "Copying"
+    elif action == 'symlink':
+        execute = symlink
+        verb = "Symlinking"
     else:
         execute = dryrun # default is do nothing
         verb = "Dry run - not moving"
@@ -233,6 +236,11 @@ def organize(df, action, cut):
     sys.stdout.flush()           
 
 
+def symlink(src, dst):
+    fullpath = os.path.abspath(src)
+    os.symlink(fullpath, dst)
+
+
 def dryrun(*args, **kwargs):
     """
     Wait for a short time.
@@ -245,7 +253,7 @@ def main():
     parser = argparse.ArgumentParser(description="Load GDC manifest and sample sheet into pandas DataFrames.")
     parser.add_argument("-m", "--manifest", required=True, help="Path to the manifest file")
     parser.add_argument("-s", "--samplesheet", default='', help="Path to the sample sheet file")
-    parser.add_argument("-a", "--action", choices=['none', 'copy', 'move'], default='none', help="Action to perform with the files ('none', 'copy' or 'move')")
+    parser.add_argument("-a", "--action", choices=['none', 'copy', 'move', 'symlink'], default='none', help="Action to perform with the files ('none', 'copy', 'move', or 'symlink')")
     parser.add_argument("-c", "--cut", default=',36', help="Comma-separated list of strings to remove as prefix, plus a number (default: ',36' == no string, but 36 characters)")
     parser.add_argument("-v", "--verify", action='store_true', help="Verify the md5sum of all files")
 
