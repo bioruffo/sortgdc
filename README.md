@@ -13,11 +13,11 @@ The script will create the following output files:
 - `allfiles.md5` a file ready to be used as input to `md5sum -c`;  
 - `info_final.tsv` containing all data from `info_initial.tsv` plus the destination path and filename.
 
-The script has three --action modes:
+The script has four --action modes:
 - 'none': Only create the output files and perform a dummy check of the operation
 - 'copy': Create the output files and **copy** the genomics data to the organized directories
 - 'move': Create the output files and **move** the genomics data to the organized directories
-
+- 'symlink': Create the output files by **symbolically linking** the genomics data to the organized directories 
 
 ## Requirements
  - pandas
