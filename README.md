@@ -118,6 +118,13 @@ Saving the dataframe to 'info_final.tsv'
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="http://grenkoprojects.com"><img src="https://avatars.githubusercontent.com/u/33234745?v=4?s=100" width="100px;" alt="Caleb Grenko"/><br /><sub><b>Caleb Grenko</b></sub></a><br /><a href="#code-grenkoca" title="Code">💻</a></td>
+    </tr>
+  </tbody>
+</table>
 
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
