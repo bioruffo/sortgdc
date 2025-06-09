@@ -36,6 +36,7 @@ Clone/save the sortgdc.py file inside the directory where all the GDC file direc
 - 'none' (default) will perform a dummy run and create the output files. Advised as initial test, followed by checking the expected file names in the 'info_final.tsv' table, and possibly re-verifying the files' md5sums. The dummy run should also be ran to identify possible issues.  
 - 'copy' will copy the files to the organized folders.  
 - 'move' will move the files instead (not recommended, only do this if you can't afford the copy space and are certain that all is ok).    
+- 'symlink' will symbolically link the files to their new location (similar to `copy` but does not occupy significant disk space).    
 
 `--cut` (`-c`): comma-separated list of strings to remove as prefix, plus a number of characters to remove from the start of the filename.  
 - The default is ',36' since the file names start with a 36-character ID.  
