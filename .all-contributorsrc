@@ -1,4 +1,21 @@
 {
   "projectName": "sortgdc",
-  "projectOwner": "bioruffo"
+  "projectOwner": "bioruffo",
+  "files": [
+    "README.md"
+  ],
+  "commitType": "docs",
+  "commitConvention": "angular",
+  "contributorsPerLine": 7,
+  "contributors": [
+    {
+      "login": "grenkoca",
+      "name": "Caleb Grenko",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33234745?v=4",
+      "profile": "http://grenkoprojects.com",
+      "contributions": [
+        "code"
+      ]
+    }
+  ]
 }
